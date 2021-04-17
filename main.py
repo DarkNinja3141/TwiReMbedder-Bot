@@ -1,9 +1,11 @@
+from dataclasses import asdict
 import signal
 import time
 
 from discord import Status, Activity, ActivityType
 from discord.ext.commands import Bot, Context
 from discord_slash import SlashCommand
+import asyncpraw
 
 from component import cogs
 from config import config, Config
@@ -13,6 +15,7 @@ class MyBot(Bot):
     def __init__(self, config_: Config):
         self.config: Config = config_
         super().__init__(command_prefix=self.config.prefix, owner_id=self.config.owner, status=Status.online)
+        self.reddit = asyncpraw.Reddit(**asdict(self.config.reddit))
         self.loop.create_task(self.startup())
         self.remove_command("help")  # Remove help command
 
@@ -37,6 +40,7 @@ class MyBot(Bot):
         print('Logged in as')
         print(self.user.name)
         print(self.user.id)
+        print("/u/" + (await self.reddit.user.me()).name)
         print('------')
 
     async def terminate(self):
