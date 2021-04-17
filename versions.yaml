@@ -1,0 +1,8 @@
+---
+version: "0.0.0"
+python: "3.8.7"
+discord.py: "v1.7.1"
+discord-py-slash-command: "v1.1.2"
+dacite: "v1.6.0"
+asyncpraw: "v7.2.0"
+pyyaml: "v5.4.1"

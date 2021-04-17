@@ -1,6 +1,22 @@
 import json
+import re
+import typing
+
+import yaml
 from dataclasses import dataclass
 import dacite
+
+
+@dataclass
+class Versions:
+    """Bot and library versions"""
+    version: str
+    python: str
+    discord_py: str
+    discord_py_slash_command: str
+    dacite: str
+    asyncpraw: str
+    pyyaml: str
 
 
 @dataclass
@@ -22,5 +38,15 @@ class Config:
     reddit: Reddit
 
 
+def escape_keys(dct: typing.Dict[str, typing.Any]):
+    if not isinstance(dct, typing.Dict):
+        return dct
+    return {re.sub(r'\W', "_", k, re.ASCII): escape_keys(v) for k, v in dct.items()}
+
+
+with open("versions.yaml", "r") as versions_yaml:
+    versions: Versions = dacite.from_dict(Versions, escape_keys(yaml.safe_load(versions_yaml)))
+
 with open("config.json", "r") as config_json:
     config: Config = dacite.from_dict(Config, json.load(config_json))
+config.reddit.user_agent = config.reddit.user_agent.format(version=versions.version)
