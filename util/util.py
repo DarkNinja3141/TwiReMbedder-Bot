@@ -1,4 +1,6 @@
-__all__ = ["Ignore"]
+__all__ = ["Ignore", "EmbedLimit"]
+
+from dataclasses import dataclass
 
 
 class _Ignore:
@@ -11,3 +13,14 @@ class _Ignore:
 
 
 Ignore = _Ignore()
+
+
+@dataclass
+class EmbedLimit:
+    title: int = 256
+    description: int = 2048
+    fields: int = 25
+    field_name: int = 256
+    field_value: int = 1024
+    footer_text: int = 2048
+    author_name: int = 256
