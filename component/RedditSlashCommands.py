@@ -41,6 +41,15 @@ class RedditSlashCommands(MyCog):
                        guild_ids=debug_guilds(),
                        )
     async def reddit(self, ctx: SlashContext, url: str, request_info: str = None):
+        if request_info is None:
+            hidden = False
+        elif request_info == "link":
+            hidden = True
+        else:
+            await ctx.send(content="Invalid type", hidden=True)
+            return
+        await ctx.defer(hidden=hidden)
+
         try:
             submission: Submission = await self.bot.reddit.submission(url=url)
         except:
@@ -53,15 +62,12 @@ class RedditSlashCommands(MyCog):
 
         if request_info is None:
             content, embed = await get_reddit_embed(self.bot.reddit, submission)
-            hidden = False
         elif request_info == "link":
             if SubmissionType.get_submission_type(submission).is_self():
                 await ctx.send(content="Post must be a link post", hidden=True)
                 return
             content = submission.url
             embed = None
-            hidden = True
         else:
-            await ctx.send(content="Invalid type", hidden=True)
-            return
+            return  # Already checked earlier
         await ctx.send(content=content, embed=embed, hidden=hidden)
