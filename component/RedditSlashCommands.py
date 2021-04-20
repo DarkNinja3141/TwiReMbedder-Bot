@@ -3,6 +3,7 @@ from asyncpraw.reddit import Submission
 from discord_slash import cog_ext, SlashContext, SlashCommandOptionType
 from discord_slash.utils import manage_commands
 
+from util import debug_guilds
 from .MyCog import MyCog
 from command.reddit import get_reddit_embed
 
@@ -20,7 +21,9 @@ class RedditSlashCommands(MyCog):
                                option_type=SlashCommandOptionType.STRING,
                                required=True,
                            ),
-                       ])
+                       ],
+                       guild_ids=debug_guilds(),
+                       )
     async def reddit(self, ctx: SlashContext, url: str):
         try:
             submission: Submission = await self.bot.reddit.submission(url=url)

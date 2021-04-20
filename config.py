@@ -1,9 +1,9 @@
 import json
 import re
-import typing
+from typing import Any, Dict, List
 
 import yaml
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import dacite
 
 
@@ -29,6 +29,13 @@ class Reddit:
     password: str
 
 
+@dataclass()
+class Debug:
+    """Debug settings"""
+    enabled: bool
+    guild_ids: List[int] = field(default_factory=list)
+
+
 @dataclass
 class Config:
     """Bot settings and credentials"""
@@ -36,10 +43,11 @@ class Config:
     prefix: str
     owner: int
     reddit: Reddit
+    debug: Debug = Debug(enabled=False)
 
 
-def escape_keys(dct: typing.Dict[str, typing.Any]):
-    if not isinstance(dct, typing.Dict):
+def escape_keys(dct: Dict[str, Any]):
+    if not isinstance(dct, Dict):
         return dct
     return {re.sub(r'\W', "_", k, re.ASCII): escape_keys(v) for k, v in dct.items()}
 

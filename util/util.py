@@ -1,6 +1,13 @@
-__all__ = ["Ignore", "EmbedLimit"]
+__all__ = ["debug_guilds", "Ignore", "EmbedLimit"]
 
+import typing
 from dataclasses import dataclass
+
+from config import config
+
+
+def debug_guilds() -> typing.Optional[typing.List[int]]:
+    return config.debug.guild_ids if config.debug else None
 
 
 class _Ignore:
