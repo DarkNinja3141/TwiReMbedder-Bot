@@ -47,6 +47,7 @@ class MyBot(Bot):
         try:
             await self.change_presence(status=Status.offline)
         finally:
+            await self.reddit.close()
             await self.close()
             time.sleep(1)
 
