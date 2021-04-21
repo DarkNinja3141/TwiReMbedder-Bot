@@ -36,18 +36,21 @@ class RedditSlashCommands(MyCog):
                                    #     name="Gallery",
                                    #     value="gallery",
                                    # ),
+                                   create_choice(
+                                       name="Clean URL",
+                                       value="url",
+                                   ),
+                                   create_choice(
+                                       name="Short URL",
+                                       value="shortlink",
+                                   ),
                                ],
                            ),
                        ],
                        guild_ids=debug_guilds(),
                        )
     async def reddit(self, ctx: SlashContext, url: str, request_info: str = None):
-        if request_info is None:
-            hidden = False
-        elif request_info == "link":
-            hidden = True
-        else:
-            raise CommandUseFailure("Invalid request_info string")
+        hidden = request_info is not None
         await ctx.defer(hidden=hidden)
 
         try:
@@ -58,13 +61,17 @@ class RedditSlashCommands(MyCog):
             if not ctx.channel.nsfw:
                 raise CommandUseFailure("NSFW submissions must be in an NSFW channel")
 
+        embed = None
         if request_info is None:
             content, embed = await get_reddit_embed(self.bot.reddit, submission)
         elif request_info == "link":
             if SubmissionType.get_submission_type(submission).is_self():
                 raise CommandUseFailure("Post must be a link post")
             content = submission.url
-            embed = None
+        elif request_info == "url":
+            content = f"https://www.reddit.com{submission.permalink}"
+        elif request_info == "shortlink":
+            content = submission.shortlink
         else:
-            return  # Already checked earlier
+            raise CommandUseFailure("Invalid request_info string")
         await ctx.send(content=content, embed=embed, hidden=hidden)
