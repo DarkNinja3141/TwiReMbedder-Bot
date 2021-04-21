@@ -4,6 +4,7 @@ from discord_slash.utils import manage_commands
 from discord_slash.utils.manage_commands import create_choice
 
 from util import debug_guilds
+from util.error import CommandUseFailure
 from .MyCog import MyCog
 from command.reddit import get_reddit_embed, SubmissionType
 
@@ -46,26 +47,22 @@ class RedditSlashCommands(MyCog):
         elif request_info == "link":
             hidden = True
         else:
-            await ctx.send(content="Invalid type", hidden=True)
-            return
+            raise CommandUseFailure("Invalid request_info string")
         await ctx.defer(hidden=hidden)
 
         try:
             submission: Submission = await self.bot.reddit.submission(url=url)
         except:
-            await ctx.send(content="Invalid URL", hidden=True)
-            return
+            raise CommandUseFailure("Invalid URL")
         if submission.over_18:
             if not ctx.channel.nsfw:
-                await ctx.send(content="NSFW submissions must be in an NSFW channel", hidden=True)
-                return
+                raise CommandUseFailure("NSFW submissions must be in an NSFW channel")
 
         if request_info is None:
             content, embed = await get_reddit_embed(self.bot.reddit, submission)
         elif request_info == "link":
             if SubmissionType.get_submission_type(submission).is_self():
-                await ctx.send(content="Post must be a link post", hidden=True)
-                return
+                raise CommandUseFailure("Post must be a link post")
             content = submission.url
             embed = None
         else:

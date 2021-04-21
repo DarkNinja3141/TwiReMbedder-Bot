@@ -5,10 +5,11 @@ import time
 from asyncpraw import Reddit
 from discord import Status, Activity, ActivityType
 from discord.ext.commands import Bot, Context
-from discord_slash import SlashCommand
+from discord_slash import SlashCommand, SlashContext
 
 from component import cogs
 from config import config, Config
+from util.error import CommandUseFailure
 
 
 class MyBot(Bot):
@@ -22,9 +23,6 @@ class MyBot(Bot):
     def add_cogs(self):
         for cog in cogs:
             self.add_cog(cog(self))
-
-    async def on_command_error(self, ctx: Context, exception):
-        pass
 
     def _signal(self):
         try:
@@ -50,6 +48,13 @@ class MyBot(Bot):
             await self.reddit.close()
             await self.close()
             time.sleep(1)
+
+    # noinspection PyMethodMayBeStatic
+    async def on_slash_command_error(self, ctx: SlashContext, ex: Exception):
+        if isinstance(ex, CommandUseFailure):
+            await ctx.send(ex.message, hidden=True)
+            return
+        raise ex
 
 
 client: MyBot = MyBot(config)
