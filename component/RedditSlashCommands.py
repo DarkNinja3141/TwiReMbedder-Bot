@@ -44,6 +44,10 @@ class RedditSlashCommands(MyCog):
                                        name="Short URL",
                                        value="shortlink",
                                    ),
+                                   create_choice(
+                                       name="Poll",
+                                       value="poll",
+                                   ),
                                ],
                            ),
                        ],
@@ -76,6 +80,10 @@ class RedditSlashCommands(MyCog):
             content = f"https://www.reddit.com{submission.permalink}"
         elif request_info == "shortlink":
             content = submission.shortlink
+        elif request_info == "poll":
+            if SubmissionType.get_submission_type(submission) != SubmissionType.POLL:
+                raise CommandUseFailure("Post must be a poll post")
+            content = f"https://www.reddit.com/poll/{submission.id}"
         else:
             raise CommandUseFailure("Invalid request_info string")
         await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)
