@@ -6,7 +6,7 @@ from discord_slash.utils.manage_commands import create_choice
 from util import debug_guilds
 from util.error import CommandUseFailure
 from .MyCog import MyCog
-from command.reddit import get_reddit_embed, SubmissionType
+from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed
 
 
 class RedditSlashCommands(MyCog):
@@ -61,9 +61,13 @@ class RedditSlashCommands(MyCog):
             if not ctx.channel.nsfw:
                 raise CommandUseFailure("NSFW submissions must be in an NSFW channel")
 
-        embed = None
+        embed = embeds = None
         if request_info is None:
             content, embed = await get_reddit_embed(self.bot.reddit, submission)
+            poll_embed = await get_reddit_poll_embed(self.bot.reddit, submission)
+            if poll_embed is not None:
+                embeds = [embed, poll_embed]
+                embed = None
         elif request_info == "link":
             if SubmissionType.get_submission_type(submission).is_self():
                 raise CommandUseFailure("Post must be a link post")
@@ -74,4 +78,4 @@ class RedditSlashCommands(MyCog):
             content = submission.shortlink
         else:
             raise CommandUseFailure("Invalid request_info string")
-        await ctx.send(content=content, embed=embed, hidden=hidden)
+        await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)

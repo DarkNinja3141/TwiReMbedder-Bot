@@ -1,9 +1,9 @@
 import datetime
 from enum import Enum, auto
-from typing import Tuple
+from typing import Tuple, Union, List
 
 from asyncpraw import Reddit
-from asyncpraw.models import Submission, Redditor
+from asyncpraw.models import Submission, Redditor, PollData, PollOption
 from discord import Embed, Color
 from discord.embeds import EmptyEmbed
 
@@ -56,7 +56,7 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
         title=submission.title[:EmbedLimit.title],
         url=safe_url,
         description=submission.selftext[:EmbedLimit.description]
-        if submission_type == SubmissionType.SELF
+        if submission_type.is_self()
         else EmptyEmbed,
         color=Color.from_rgb(255, 69, 0),
         timestamp=datetime.datetime.utcfromtimestamp(submission.created_utc),
@@ -86,3 +86,53 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
     )
 
     return content, embed
+
+
+async def get_reddit_poll_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
+    if SubmissionType.get_submission_type(submission) is not SubmissionType.POLL:
+        return None
+    poll_data: PollData = submission.poll_data
+    total_vote_count: int
+    voting_end_timestamp: float
+    options: List[PollOption]
+    # noinspection PyUnresolvedReferences
+    total_vote_count, voting_end_timestamp, options = (poll_data.total_vote_count,
+                                                       poll_data.voting_end_timestamp / 1000.0,
+                                                       poll_data.options)
+
+    voting_end = datetime.datetime.fromtimestamp(voting_end_timestamp, datetime.timezone.utc)
+    poll_active: bool = datetime.datetime.now(datetime.timezone.utc) < voting_end
+    embed: Embed = Embed(
+        title=submission.title[:EmbedLimit.title],
+        url=f"https://www.reddit.com/poll/{submission.id}",
+        description="Poll is active. No results." if poll_active else EmptyEmbed,
+        color=Color.from_rgb(255, 69, 0),
+        timestamp=voting_end,
+    ).set_author(
+        name=f"{total_vote_count:,} vote{'' if total_vote_count == 1 else 's'}"
+             f": Poll {'active' if poll_active else 'closed'}",
+    ).set_footer(text="Voting ends at")
+
+    if poll_active:
+        return embed
+
+    poll_option_bar_fill = ["\U0001F7E5", "\U0001F7E6", "\U0001F7E9", "\U0001F7E8", "\U0001F7EA", "\U0001F7E7"]
+    for i in range(len(options)):
+        option: PollOption = options[i]
+        vote_count: int
+        text: str
+        # noinspection PyUnresolvedReferences
+        vote_count, text = (option.vote_count, option.text)
+        percentage: int = round(float(vote_count)/float(total_vote_count) * 100.0) if total_vote_count != 0 else 0
+        option_bar = get_poll_option_bar(percentage, poll_option_bar_fill[i], "\u2B1B")
+        embed.add_field(name=text,
+                        value=f"{option_bar} {vote_count:,} vote{'' if vote_count == 1 else 's'} ({percentage}%)",
+                        inline=False)
+
+    return embed
+
+
+def get_poll_option_bar(percentage: int, bar_left: str, bar_right: str) -> str:
+    num_left = int(round(percentage, -1) / 10)  # Round to nearest 10 and divide by 10
+    num_right = 10 - num_left
+    return (str(bar_left) * num_left) + (str(bar_right) * num_right)
