@@ -6,7 +6,7 @@ from discord_slash.utils.manage_commands import create_choice
 from util import debug_guilds
 from util.error import CommandUseFailure
 from .MyCog import MyCog
-from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed
+from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed
 
 
 class RedditSlashCommands(MyCog):
@@ -71,6 +71,10 @@ class RedditSlashCommands(MyCog):
             poll_embed = await get_reddit_poll_embed(self.bot.reddit, submission)
             if poll_embed is not None:
                 embeds = [embed, poll_embed]
+                embed = None
+            gallery_embed = await get_reddit_gallery_embed(self.bot.reddit, submission)
+            if gallery_embed is not None:
+                embeds = [embed, gallery_embed]
                 embed = None
         elif request_info == "link":
             if SubmissionType.get_submission_type(submission).is_self():

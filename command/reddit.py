@@ -1,6 +1,7 @@
 import datetime
 from enum import Enum, auto
 from typing import Tuple, Union, List
+from urllib.parse import urlparse
 
 from asyncpraw import Reddit
 from asyncpraw.models import Submission, Redditor, PollData, PollOption
@@ -136,3 +137,37 @@ def get_poll_option_bar(percentage: int, bar_left: str, bar_right: str) -> str:
     num_left = int(round(percentage, -1) / 10)  # Round to nearest 10 and divide by 10
     num_right = 10 - num_left
     return (str(bar_left) * num_left) + (str(bar_right) * num_right)
+
+
+async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
+    if SubmissionType.get_submission_type(submission) is not SubmissionType.GALLERY:
+        return None
+    gallery_data = submission.gallery_data
+    media_metadata = submission.media_metadata
+    embed: Embed = Embed(
+        title="Image Gallery",
+        url=f"https://www.reddit.com/gallery/{submission.id}",
+        color=Color.from_rgb(255, 69, 0),
+    )
+    digits = [":zero:", ":one:", ":two:", ":three:", ":four:",
+              ":five:", ":six:", ":seven:", ":eight:", ":nine:"]
+
+    def image_link(i: int) -> str:
+        num = i+1
+        # Turn index into digit emojis
+        return f"[{digits[num // 10] if num >= 10 else ''}{digits[num % 10]}]" \
+               f"(https://i.redd.it{urlparse(media_metadata[gallery_data['items'][i]['media_id']]['s']['u']).path})"
+        # Get media id from gallery_data, then dig into media_metadata[id], then extract the id.png part of the url
+
+    # Use this to test emojis for a gallery of 21 images
+    # for i in range(len(gallery_data['items']), 21):
+    #     gallery_data['items'].append(gallery_data['items'][len(gallery_data['items'])-1])
+    links: List[str] = list(map(image_link, range(0, len(gallery_data['items']))))
+    links_row_1 = " ".join(links[0:9])
+    links_row_2 = " ".join(links[9:14])
+    links_row_3 = " ".join(links[14:19])
+    links_row_4 = " ".join(links[19:])
+
+    embed.description = f"Click an emoji to view an image\n\n" \
+                        + "\n".join([links_row_1, links_row_2, links_row_3, links_row_4])
+    return embed
