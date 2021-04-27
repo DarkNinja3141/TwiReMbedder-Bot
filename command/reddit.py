@@ -171,6 +171,6 @@ async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Un
     links_row_3 = " ".join(links[10:15])
     links_row_4 = " ".join(links[15:])
 
-    embed.description = f"Click an emoji to view an image\n\n" \
+    embed.description = f"Click a word to view an image\n\n" \
                         + "\n".join([links_row_1, links_row_2, links_row_3, links_row_4])
     return embed
