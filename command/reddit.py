@@ -149,13 +149,16 @@ async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Un
         url=f"https://www.reddit.com/gallery/{submission.id}",
         color=Color.from_rgb(255, 69, 0),
     )
-    digits = [":zero:", ":one:", ":two:", ":three:", ":four:",
-              ":five:", ":six:", ":seven:", ":eight:", ":nine:"]
+    digits = [
+        "One", "Two", "Three", "Four", "Five",
+        "Six", "Seven", "Eight", "Nine", "Ten",
+        "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+        "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"
+    ]
 
     def image_link(i: int) -> str:
-        num = i+1
-        # Turn index into digit emojis
-        return f"[{digits[num // 10] if num >= 10 else ''}{digits[num % 10]}]" \
+        # Get text for link
+        return f"[{digits[min(i, 19)]}]" \
                f"(https://i.redd.it{urlparse(media_metadata[gallery_data['items'][i]['media_id']]['s']['u']).path})"
         # Get media id from gallery_data, then dig into media_metadata[id], then extract the id.png part of the url
 
@@ -163,10 +166,10 @@ async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Un
     # for i in range(len(gallery_data['items']), 21):
     #     gallery_data['items'].append(gallery_data['items'][len(gallery_data['items'])-1])
     links: List[str] = list(map(image_link, range(0, len(gallery_data['items']))))
-    links_row_1 = " ".join(links[0:9])
-    links_row_2 = " ".join(links[9:14])
-    links_row_3 = " ".join(links[14:19])
-    links_row_4 = " ".join(links[19:])
+    links_row_1 = " ".join(links[0:5])
+    links_row_2 = " ".join(links[5:10])
+    links_row_3 = " ".join(links[10:15])
+    links_row_4 = " ".join(links[15:])
 
     embed.description = f"Click an emoji to view an image\n\n" \
                         + "\n".join([links_row_1, links_row_2, links_row_3, links_row_4])
