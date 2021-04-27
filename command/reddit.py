@@ -176,6 +176,25 @@ async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Un
     return embed
 
 
+async def get_reddit_video_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
+    if SubmissionType.get_submission_type(submission) is not SubmissionType.VIDEO:
+        return None
+    duration = submission.media["reddit_video"]["duration"]
+    hours, remainder = divmod(duration, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    embed: Embed = Embed(
+        title="Reddit Video",
+        url=submission.url,
+        color=Color.from_rgb(255, 69, 0),
+    ).add_field(
+        name="Duration",
+        value=(
+                  f"{hours}:{minutes:02}" if hours >= 1 else f"{minutes}"
+              ) + f":{seconds:02}"
+    )
+    return embed
+
+
 def request_info_gallery(reddit: Reddit, submission: Submission) -> Union[str, None]:
     if SubmissionType.get_submission_type(submission) is not SubmissionType.GALLERY:
         return None

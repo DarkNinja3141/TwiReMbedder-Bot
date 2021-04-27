@@ -7,7 +7,7 @@ from util import debug_guilds
 from util.error import CommandUseFailure
 from .MyCog import MyCog
 from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed, \
-    request_info_gallery, request_info_poll
+    request_info_gallery, request_info_poll, get_reddit_video_embed
 
 
 class RedditSlashCommands(MyCog):
@@ -76,6 +76,10 @@ class RedditSlashCommands(MyCog):
             gallery_embed = await get_reddit_gallery_embed(self.bot.reddit, submission)
             if gallery_embed is not None:
                 embeds = [embed, gallery_embed]
+                embed = None
+            video_embed = await get_reddit_video_embed(self.bot.reddit, submission)
+            if video_embed is not None:
+                embeds = [embed, video_embed]
                 embed = None
         elif request_info == "link":
             if SubmissionType.get_submission_type(submission).is_self():
