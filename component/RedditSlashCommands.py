@@ -7,7 +7,7 @@ from util import debug_guilds
 from util.error import CommandUseFailure
 from .MyCog import MyCog
 from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed, \
-    request_info_gallery
+    request_info_gallery, request_info_poll
 
 
 class RedditSlashCommands(MyCog):
@@ -85,14 +85,14 @@ class RedditSlashCommands(MyCog):
             content = f"https://www.reddit.com{submission.permalink}"
         elif request_info == "shortlink":
             content = submission.shortlink
-        elif request_info == "poll":
-            if SubmissionType.get_submission_type(submission) != SubmissionType.POLL:
-                raise CommandUseFailure("Post must be a poll post")
-            content = f"https://www.reddit.com/poll/{submission.id}"
         elif request_info == "gallery":
             if SubmissionType.get_submission_type(submission) != SubmissionType.GALLERY:
                 raise CommandUseFailure("Post must be a gallery post")
             content = request_info_gallery(self.bot.reddit, submission)
+        elif request_info == "poll":
+            if SubmissionType.get_submission_type(submission) != SubmissionType.POLL:
+                raise CommandUseFailure("Post must be a poll post")
+            content = request_info_poll(self.bot.reddit, submission)
         else:
             raise CommandUseFailure("Invalid request_info string")
         await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)

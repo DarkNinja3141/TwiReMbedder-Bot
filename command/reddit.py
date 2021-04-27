@@ -184,8 +184,43 @@ def request_info_gallery(reddit: Reddit, submission: Submission) -> Union[str, N
 
     def image_link(i: int) -> str:
         num = i+1
-        return f"{num}\n" \
+        return f"**{num}**\n" \
                f"https://i.redd.it{urlparse(media_metadata[gallery_data['items'][i]['media_id']]['s']['u']).path}"
 
     return "\n".join(map(image_link, range(0, len(gallery_data['items']))))
-    pass
+
+
+def request_info_poll(reddit: Reddit, submission: Submission) -> Union[str, None]:
+    if SubmissionType.get_submission_type(submission) is not SubmissionType.POLL:
+        return None
+    poll_data: PollData = submission.poll_data
+    total_vote_count: int
+    voting_end_timestamp: float
+    options: List[PollOption]
+    # noinspection PyUnresolvedReferences
+    total_vote_count, voting_end_timestamp, options = (poll_data.total_vote_count,
+                                                       poll_data.voting_end_timestamp / 1000.0,
+                                                       poll_data.options)
+
+    voting_end = datetime.datetime.fromtimestamp(voting_end_timestamp, datetime.timezone.utc)
+    poll_active: bool = datetime.datetime.now(datetime.timezone.utc) < voting_end
+
+    if poll_active:
+        return "Poll is active. No results."
+
+    options_texts: List[str] = []
+    poll_option_bar_fill = ["\U0001F7E5", "\U0001F7E6", "\U0001F7E9", "\U0001F7E8", "\U0001F7EA", "\U0001F7E7"]
+    for i in range(len(options)):
+        option: PollOption = options[i]
+        vote_count: int
+        text: str
+        # noinspection PyUnresolvedReferences
+        vote_count, text = (option.vote_count, option.text)
+        percentage: int = round(float(vote_count) / float(total_vote_count) * 100.0) if total_vote_count != 0 else 0
+        option_bar = get_poll_option_bar(percentage, poll_option_bar_fill[i], "\u2B1B")
+        options_texts.append(
+            f"**{text}**\n"
+            f"{option_bar} {vote_count:,} vote{'' if vote_count == 1 else 's'} ({percentage}%)"
+        )
+
+    return "\n".join(options_texts)
