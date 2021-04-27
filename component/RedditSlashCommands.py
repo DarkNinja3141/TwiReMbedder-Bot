@@ -6,7 +6,8 @@ from discord_slash.utils.manage_commands import create_choice
 from util import debug_guilds
 from util.error import CommandUseFailure
 from .MyCog import MyCog
-from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed
+from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed, \
+    request_info_gallery
 
 
 class RedditSlashCommands(MyCog):
@@ -32,10 +33,6 @@ class RedditSlashCommands(MyCog):
                                        name="Link",
                                        value="link",
                                    ),
-                                   # create_choice(
-                                   #     name="Gallery",
-                                   #     value="gallery",
-                                   # ),
                                    create_choice(
                                        name="Clean URL",
                                        value="url",
@@ -43,6 +40,10 @@ class RedditSlashCommands(MyCog):
                                    create_choice(
                                        name="Short URL",
                                        value="shortlink",
+                                   ),
+                                   create_choice(
+                                       name="Gallery",
+                                       value="gallery",
                                    ),
                                    create_choice(
                                        name="Poll",
@@ -88,6 +89,10 @@ class RedditSlashCommands(MyCog):
             if SubmissionType.get_submission_type(submission) != SubmissionType.POLL:
                 raise CommandUseFailure("Post must be a poll post")
             content = f"https://www.reddit.com/poll/{submission.id}"
+        elif request_info == "gallery":
+            if SubmissionType.get_submission_type(submission) != SubmissionType.GALLERY:
+                raise CommandUseFailure("Post must be a gallery post")
+            content = request_info_gallery(self.bot.reddit, submission)
         else:
             raise CommandUseFailure("Invalid request_info string")
         await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)

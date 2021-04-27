@@ -174,3 +174,18 @@ async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Un
     embed.description = f"Click a word to view an image\n\n" \
                         + "\n".join([links_row_1, links_row_2, links_row_3, links_row_4])
     return embed
+
+
+def request_info_gallery(reddit: Reddit, submission: Submission) -> Union[str, None]:
+    if SubmissionType.get_submission_type(submission) is not SubmissionType.GALLERY:
+        return None
+    gallery_data = submission.gallery_data
+    media_metadata = submission.media_metadata
+
+    def image_link(i: int) -> str:
+        num = i+1
+        return f"{num}\n" \
+               f"https://i.redd.it{urlparse(media_metadata[gallery_data['items'][i]['media_id']]['s']['u']).path}"
+
+    return "\n".join(map(image_link, range(0, len(gallery_data['items']))))
+    pass
