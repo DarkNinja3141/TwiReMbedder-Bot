@@ -36,3 +36,11 @@ class EmbedLimit:
     field_value: int = 1024
     footer_text: int = 2048
     author_name: int = 256
+
+
+_T = typing.TypeVar('_T')
+_VT = typing.TypeVar('_VT')
+
+
+def find(items: typing.Iterable[_T], predicate: typing.Callable[[_T], bool], default: _VT = None):
+    return next((x for x in items if predicate(x)), default)
