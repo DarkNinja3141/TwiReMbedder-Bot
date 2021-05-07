@@ -60,6 +60,7 @@ class RedditSlashCommands(MyCog):
 
         try:
             submission: Submission = await self.bot.reddit.submission(url=url)
+            setattr(submission, "submission_type", SubmissionType.get_submission_type(submission))
         except:
             raise CommandUseFailure("Invalid URL")
         if submission.over_18:
@@ -82,7 +83,7 @@ class RedditSlashCommands(MyCog):
                 embeds = [embed, video_embed]
                 embed = None
         elif request_info == "link":
-            if SubmissionType.get_submission_type(submission).is_self():
+            if submission.submission_type.is_self():
                 raise CommandUseFailure("Post must be a link post")
             content = submission.url
         elif request_info == "url":
@@ -90,11 +91,11 @@ class RedditSlashCommands(MyCog):
         elif request_info == "shortlink":
             content = submission.shortlink
         elif request_info == "gallery":
-            if SubmissionType.get_submission_type(submission) != SubmissionType.GALLERY:
+            if submission.submission_type is not SubmissionType.GALLERY:
                 raise CommandUseFailure("Post must be a gallery post")
             content = request_info_gallery(self.bot.reddit, submission)
         elif request_info == "poll":
-            if SubmissionType.get_submission_type(submission) != SubmissionType.POLL:
+            if submission.submission_type is not SubmissionType.POLL:
                 raise CommandUseFailure("Post must be a poll post")
             content = request_info_poll(self.bot.reddit, submission)
         else:

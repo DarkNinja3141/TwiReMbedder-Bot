@@ -48,7 +48,7 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
 
     :raises util.error.CommandUseFailure
     """
-    submission_type: SubmissionType = SubmissionType.get_submission_type(submission)
+    submission_type: SubmissionType = submission.submission_type
     author: Redditor = await reddit.redditor(name=submission.author, fetch=True)
     safe_url = f"https://www.reddit.com{submission.permalink}"
 
@@ -91,7 +91,7 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
 
 
 async def get_reddit_poll_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
-    if SubmissionType.get_submission_type(submission) is not SubmissionType.POLL:
+    if submission.submission_type is not SubmissionType.POLL:
         return None
     poll_data: PollData = submission.poll_data
     total_vote_count: int
@@ -141,7 +141,7 @@ def get_poll_option_bar(percentage: int, bar_left: str, bar_right: str) -> str:
 
 
 async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
-    if SubmissionType.get_submission_type(submission) is not SubmissionType.GALLERY:
+    if submission.submission_type is not SubmissionType.GALLERY:
         return None
     gallery_data = submission.gallery_data
     media_metadata = submission.media_metadata
@@ -178,7 +178,7 @@ async def get_reddit_gallery_embed(reddit: Reddit, submission: Submission) -> Un
 
 
 async def get_reddit_video_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
-    if SubmissionType.get_submission_type(submission) is not SubmissionType.VIDEO:
+    if submission.submission_type is not SubmissionType.VIDEO:
         return None
     duration = submission.media["reddit_video"]["duration"]
     hours, remainder = divmod(duration, 3600)
@@ -197,7 +197,7 @@ async def get_reddit_video_embed(reddit: Reddit, submission: Submission) -> Unio
 
 
 def request_info_gallery(reddit: Reddit, submission: Submission) -> Union[str, None]:
-    if SubmissionType.get_submission_type(submission) is not SubmissionType.GALLERY:
+    if submission.submission_type is not SubmissionType.GALLERY:
         return None
     gallery_data = submission.gallery_data
     media_metadata = submission.media_metadata
@@ -211,7 +211,7 @@ def request_info_gallery(reddit: Reddit, submission: Submission) -> Union[str, N
 
 
 def request_info_poll(reddit: Reddit, submission: Submission) -> Union[str, None]:
-    if SubmissionType.get_submission_type(submission) is not SubmissionType.POLL:
+    if submission.submission_type is not SubmissionType.POLL:
         return None
     poll_data: PollData = submission.poll_data
     total_vote_count: int
