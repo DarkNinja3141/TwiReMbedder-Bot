@@ -81,6 +81,7 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
         if hasattr(submission, "thumbnail")
         and submission.thumbnail != "default"
         and submission_type is not SubmissionType.IMAGE
+        and submission_type is not SubmissionType.VIDEO
         and not submission_type.is_self()
         else EmptyEmbed
     ).set_image(
@@ -192,6 +193,11 @@ async def get_reddit_video_embed(reddit: Reddit, submission: Submission) -> Unio
         value=(
                   f"{hours}:{minutes:02}" if hours >= 1 else f"{minutes}"
               ) + f":{seconds:02}"
+    ).set_thumbnail(
+        url=submission.thumbnail
+        if hasattr(submission, "thumbnail")
+        and submission.thumbnail != "default"
+        else EmptyEmbed
     )
     return embed
 
