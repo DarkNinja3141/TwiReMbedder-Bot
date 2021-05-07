@@ -1,4 +1,4 @@
-__all__ = ["debug_guilds", "Ignore", "EmbedLimit"]
+__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit"]
 
 import typing
 from dataclasses import dataclass
@@ -20,6 +20,11 @@ class _Ignore:
 
 
 Ignore = _Ignore()
+
+
+@dataclass
+class DiscordLimit:
+    file_limit: int = 8000000
 
 
 @dataclass

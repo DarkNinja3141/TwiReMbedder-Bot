@@ -1,3 +1,4 @@
+from asyncio import Lock
 from dataclasses import asdict
 import signal
 import time
@@ -17,6 +18,7 @@ class MyBot(Bot):
         self.config: Config = config_
         super().__init__(command_prefix=self.config.prefix, owner_id=self.config.owner, status=Status.online)
         self.reddit: Reddit = Reddit(**asdict(self.config.reddit))
+        self.video_lock: Lock = Lock()
         self.loop.create_task(self.startup())
         self.remove_command("help")  # Remove help command
 

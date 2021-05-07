@@ -1,9 +1,15 @@
+import asyncio
+import os
+
+import discord
 from asyncpraw.reddit import Submission
 from discord_slash import cog_ext, SlashContext, SlashCommandOptionType
+from discord_slash.model import SlashMessage
 from discord_slash.utils import manage_commands
 from discord_slash.utils.manage_commands import create_choice
 
-from util import debug_guilds
+from command.video import get_reddit_video_approx_size, do_reddit_video_upload
+from util import *
 from util.error import CommandUseFailure
 from .MyCog import MyCog
 from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed, \
@@ -68,6 +74,7 @@ class RedditSlashCommands(MyCog):
                 raise CommandUseFailure("NSFW submissions must be in an NSFW channel")
 
         embed = embeds = None
+        do_video_upload = False
         if request_info is None:
             content, embed = await get_reddit_embed(self.bot.reddit, submission)
             poll_embed = await get_reddit_poll_embed(self.bot.reddit, submission)
@@ -82,6 +89,7 @@ class RedditSlashCommands(MyCog):
             if video_embed is not None:
                 embeds = [embed, video_embed]
                 embed = None
+                do_video_upload = True
         elif request_info == "link":
             if submission.submission_type.is_self():
                 raise CommandUseFailure("Post must be a link post")
@@ -100,4 +108,7 @@ class RedditSlashCommands(MyCog):
             content = request_info_poll(self.bot.reddit, submission)
         else:
             raise CommandUseFailure("Invalid request_info string")
-        await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)
+
+        message: SlashMessage = await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)
+        if do_video_upload:
+            await do_reddit_video_upload(self.bot, ctx, message, submission)
