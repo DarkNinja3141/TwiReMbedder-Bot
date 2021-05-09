@@ -111,9 +111,11 @@ class RedditSlashCommands(MyCog):
         if do_video_upload:
             upload_message = await ctx.send("Attempting video upload... (this may take a while)")
             async def on_video_success(file):
-                await message.edit(content=message.content, embed=message.embeds[0])
+                await message.edit(content=content, embed=embeds[0])
                 await upload_message.edit(file=discord.File(fp=file))
                 await upload_message.edit(content=None)
             async def on_video_failure():
+                embeds[1].set_footer(text="Video too large to upload")
+                await message._slash_edit(content=content, embeds=embeds)
                 await upload_message.delete()
             await do_reddit_video_download(self.bot, submission, on_video_success, on_video_failure)
