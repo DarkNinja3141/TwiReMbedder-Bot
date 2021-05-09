@@ -109,7 +109,7 @@ class RedditSlashCommands(MyCog):
         message: SlashMessage = await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)
 
         if do_video_upload:
-            upload_message = await ctx.send("Attempting video upload...")
+            upload_message = await ctx.send("Attempting video upload... (this may take a while)")
             async def on_video_success(file):
                 await message.edit(content=message.content, embed=message.embeds[0])
                 await upload_message.edit(file=discord.File(fp=file))
