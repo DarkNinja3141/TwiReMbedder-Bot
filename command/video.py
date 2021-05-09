@@ -80,6 +80,7 @@ async def do_reddit_video_download(bot, submission: Submission,
                     ffmpeg.output(
                         *inputs,
                         filename,
+                        strict="-2",
                         loglevel="quiet",
                     ).run()
                 await run_ffmpeg()
