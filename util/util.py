@@ -1,5 +1,7 @@
-__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit"]
+__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit", "find", "remove_file"]
 
+import errno
+import os
 import typing
 from dataclasses import dataclass
 
@@ -44,3 +46,14 @@ _VT = typing.TypeVar('_VT')
 
 def find(items: typing.Iterable[_T], predicate: typing.Callable[[_T], bool], default: _VT = None):
     return next((x for x in items if predicate(x)), default)
+
+
+def remove_file(filename):
+    """
+    https://stackoverflow.com/a/10840586
+    """
+    try:
+        os.remove(filename)
+    except OSError as e:  # this would be "except OSError, e:" before Python 2.6
+        if e.errno != errno.ENOENT:  # errno.ENOENT = no such file or directory
+            raise  # re-raise exception if a different error occurred

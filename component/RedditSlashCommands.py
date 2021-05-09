@@ -1,6 +1,3 @@
-import asyncio
-import os
-
 import discord
 from asyncpraw.reddit import Submission
 from discord_slash import cog_ext, SlashContext, SlashCommandOptionType
@@ -8,7 +5,7 @@ from discord_slash.model import SlashMessage
 from discord_slash.utils import manage_commands
 from discord_slash.utils.manage_commands import create_choice
 
-from command.video import get_reddit_video_approx_size, do_reddit_video_upload
+from command.video import do_reddit_video_download
 from util import *
 from util.error import CommandUseFailure
 from .MyCog import MyCog
@@ -110,5 +107,13 @@ class RedditSlashCommands(MyCog):
             raise CommandUseFailure("Invalid request_info string")
 
         message: SlashMessage = await ctx.send(content=content, embed=embed, embeds=embeds, hidden=hidden)
+
         if do_video_upload:
-            await do_reddit_video_upload(self.bot, ctx, message, submission)
+            upload_message = await ctx.send("Attempting video upload...")
+            async def on_video_success(file):
+                await message.edit(content=message.content, embed=message.embeds[0])
+                await upload_message.edit(file=discord.File(fp=file))
+                await upload_message.edit(content=None)
+            async def on_video_failure():
+                await upload_message.delete()
+            await do_reddit_video_download(self.bot, submission, on_video_success, on_video_failure)

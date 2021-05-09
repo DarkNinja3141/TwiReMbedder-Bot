@@ -43,6 +43,7 @@ class Config:
     prefix: str
     owner: int
     reddit: Reddit
+    user_agent: str
     debug: Debug = Debug(enabled=False)
 
 
