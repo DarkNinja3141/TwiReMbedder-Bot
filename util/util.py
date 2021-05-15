@@ -1,4 +1,4 @@
-__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit", "find", "remove_file", "interval"]
+__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit", "find", "remove_file", "supplier", "interval"]
 
 import errno
 import operator
@@ -76,13 +76,19 @@ def remove_file(filename):
             raise  # re-raise exception if a different error occurred
 
 
+def supplier(value: _T) -> typing.Callable[[], _T]:
+    """Returns a function that returns a constant value"""
+    return lambda *_, **__: value
+
+
 # noinspection PyPep8Naming
 class interval:
-    def __init__(self, start, end, incl_start=True, incl_end=True):
+    """Usage: x in interval(start, end)"""
+    def __init__(self, start=None, end=None, incl_start=True, incl_end=True):
         self.start = start
         self.end = end
-        self.start_comparator = operator.le if incl_start else operator.lt
-        self.end_comparator = operator.le if incl_end else operator.lt
+        self.start_comparator = (operator.le if incl_start else operator.lt) if start is not None else supplier(True)
+        self.end_comparator = (operator.le if incl_end else operator.lt) if end is not None else supplier(True)
 
     def __contains__(self, item):
         return self.start_comparator(self.start, item) and self.end_comparator(item, self.end)
