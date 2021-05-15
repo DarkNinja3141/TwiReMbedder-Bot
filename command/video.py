@@ -32,8 +32,11 @@ def get_urls_from_mpd(base_url: str, mpd_body: str) -> Tuple[str, List[str]]:
 
 
 async def get_video_approx_size(session: ClientSession, url: str):
-    async with session.head(url) as response:
-        return int(response.headers["Content-Length"])
+    try:
+        async with session.head(url) as response:
+            return int(response.headers["Content-Length"])
+    except:
+        return 0
 
 
 async def do_reddit_video_download(bot, submission: Submission,
