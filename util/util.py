@@ -13,12 +13,28 @@ def debug_guilds() -> typing.Optional[typing.List[int]]:
 
 
 class _Ignore:
-    """Use as a context manager to ignore exceptions"""
+    """ Use as a context manager to ignore exceptions
+
+    Usage:
+
+    .. code-block:: python
+        with Ignore:
+            pass
+
+    Call with exception types to filter specifically
+    ex: Ignore(Exception1, Exception2)
+    """
+    def __init__(self, *exceptions):
+        self.exceptions = set(exceptions)
+
     def __enter__(self):
         return None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return True
+        return len(self.exceptions) == 0 or exc_type in self.exceptions
+
+    def __call__(self, *args, **kwargs):
+        return _Ignore(*args)
 
 
 Ignore = _Ignore()
