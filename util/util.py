@@ -1,6 +1,7 @@
-__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit", "find", "remove_file"]
+__all__ = ["debug_guilds", "Ignore", "DiscordLimit", "EmbedLimit", "find", "remove_file", "interval"]
 
 import errno
+import operator
 import os
 import typing
 from dataclasses import dataclass
@@ -73,3 +74,15 @@ def remove_file(filename):
     except OSError as e:  # this would be "except OSError, e:" before Python 2.6
         if e.errno != errno.ENOENT:  # errno.ENOENT = no such file or directory
             raise  # re-raise exception if a different error occurred
+
+
+# noinspection PyPep8Naming
+class interval:
+    def __init__(self, start, end, incl_start=True, incl_end=True):
+        self.start = start
+        self.end = end
+        self.start_comparator = operator.le if incl_start else operator.lt
+        self.end_comparator = operator.le if incl_end else operator.lt
+
+    def __contains__(self, item):
+        return self.start_comparator(self.start, item) and self.end_comparator(item, self.end)
