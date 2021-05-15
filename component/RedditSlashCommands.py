@@ -1,5 +1,5 @@
 import discord
-from asyncpraw.reddit import Submission
+from asyncpraw.reddit import Submission, Comment
 from discord_slash import cog_ext, SlashContext, SlashCommandOptionType
 from discord_slash.model import SlashMessage
 from discord_slash.utils import manage_commands
@@ -10,7 +10,7 @@ from util import *
 from util.error import CommandUseFailure
 from .MyCog import MyCog
 from command.reddit import SubmissionType, get_reddit_embed, get_reddit_poll_embed, get_reddit_gallery_embed, \
-    request_info_gallery, request_info_poll, get_reddit_video_embed
+    request_info_gallery, request_info_poll, get_reddit_video_embed, get_reddit_comment_embed
 
 
 class RedditSlashCommands(MyCog):
@@ -58,9 +58,18 @@ class RedditSlashCommands(MyCog):
                        guild_ids=debug_guilds(),
                        )
     async def reddit(self, ctx: SlashContext, url: str, request_info: str = None):
+        # noinspection PyUnusedLocal
+        is_comment = False
+        with Ignore:
+            is_comment = bool(Comment.id_from_url(url))  # id is truthy
+        if is_comment:
+            await self.reddit_comment(ctx, url, request_info)
+        else:
+            await self.reddit_submission(ctx, url, request_info)
+
+    async def reddit_submission(self, ctx: SlashContext, url: str, request_info: str = None):
         hidden = request_info is not None
         await ctx.defer(hidden=hidden)
-
         try:
             submission: Submission = await self.bot.reddit.submission(url=url)
             setattr(submission, "submission_type", SubmissionType.get_submission_type(submission))
@@ -119,3 +128,13 @@ class RedditSlashCommands(MyCog):
                 await message._slash_edit(content=content, embeds=embeds)
                 await upload_message.delete()
             await do_reddit_video_download(self.bot, submission, on_video_success, on_video_failure)
+
+    async def reddit_comment(self, ctx: SlashContext, url: str, request_info: str = None):
+        await ctx.defer()
+        try:
+            comment: Comment = await self.bot.reddit.comment(url=url)
+            await comment.refresh()
+        except:
+            raise CommandUseFailure("Invalid URL")
+        content, embed = await get_reddit_comment_embed(self.bot.reddit, comment)
+        await ctx.send(content=content, embed=embed)

@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 from asyncpraw import Reddit
 from asyncpraw.models import Submission, Redditor, PollData, PollOption
+from asyncpraw.reddit import Comment
 from discord import Embed, Color
 from discord.embeds import EmptyEmbed
 
@@ -86,6 +87,38 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
         else EmptyEmbed
     ).set_image(
         url=submission.url if submission_type is SubmissionType.IMAGE else EmptyEmbed
+    )
+
+    return content, embed
+
+
+async def get_reddit_comment_embed(reddit: Reddit, comment: Comment) -> Tuple[str, Embed]:
+    """Takes a reddit comment url and turns it into a discord embed"""
+    author: Redditor = await reddit.redditor(name=comment.author.name, fetch=True)
+    safe_url = f"https://www.reddit.com{comment.permalink}"
+
+    content = f"<{safe_url}>"
+    embed: Embed = Embed(
+        title="Comment on a user's submission" if comment.is_root else "Reply to another user's comment",
+        url=safe_url,
+        description=comment.body,
+        color=Color.from_rgb(255, 69, 0),
+        timestamp=datetime.datetime.utcfromtimestamp(comment.created_utc),
+    ).set_author(
+        name=f"/u/{author.name}",
+        url=f"https://www.reddit.com/u/{author.name}",
+        icon_url=author.icon_img if hasattr(author, "icon_img") else EmptyEmbed
+    ).add_field(
+        name="Score",
+        value=f"{comment.score:,}",
+        inline=True,
+    ).add_field(
+        name="Replies",
+        value=f"{len(comment.replies):,}",
+        inline=True,
+    ).set_footer(
+        text=f"Reddit - /r/{comment.subreddit}",
+        icon_url="https://www.redditstatic.com/desktop2x/img/favicon/favicon-96x96.png",
     )
 
     return content, embed
