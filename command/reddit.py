@@ -9,7 +9,7 @@ from asyncpraw.reddit import Comment
 from discord import Embed, Color
 from discord.embeds import EmptyEmbed
 
-from util import EmbedLimit
+from util import *
 
 
 class SubmissionType(Enum):
@@ -88,6 +88,13 @@ async def get_reddit_embed(reddit: Reddit, submission: Submission) -> Tuple[str,
     ).set_image(
         url=submission.url if submission_type is SubmissionType.IMAGE else EmptyEmbed
     )
+    awards = get_reddit_awards(submission)
+    if awards:
+        embed.add_field(
+            name="Awards",
+            value=awards,
+            inline=True,
+        )
 
     return content, embed
 
@@ -120,8 +127,35 @@ async def get_reddit_comment_embed(reddit: Reddit, comment: Comment) -> Tuple[st
         text=f"Reddit - /r/{comment.subreddit}",
         icon_url="https://www.redditstatic.com/desktop2x/img/favicon/favicon-96x96.png",
     )
+    awards = get_reddit_awards(comment)
+    if awards:
+        embed.add_field(
+            name="Awards",
+            value=awards,
+            inline=True,
+        )
 
     return content, embed
+
+
+BRONZE_RANGE = interval(None, 100, incl_end=False)
+SILVER_RANGE = interval(100, 500, incl_end=False)
+GOLD_RANGE = interval(500, 1800, incl_end=False)
+PLATINUM_RANGE = interval(1800, None)
+
+
+def get_reddit_awards(submission: Union[Submission, Comment]) -> str:
+    awards = [0, 0, 0, 0]  # platinum, gold, silver, bronze
+    for award in submission.all_awardings:
+        for award_index, award_type in enumerate((PLATINUM_RANGE, GOLD_RANGE, SILVER_RANGE, BRONZE_RANGE)):
+            if award["coin_price"] in award_type:
+                awards[award_index] += award["count"]
+                break
+    return "".join(
+        f"{emoji}{awards[award_index]:,}"
+        for award_index, emoji in enumerate((":medal:", ":first_place:", ":second_place:", ":third_place:"))
+        if awards[award_index] > 0
+    )
 
 
 async def get_reddit_poll_embed(reddit: Reddit, submission: Submission) -> Union[Embed, None]:
